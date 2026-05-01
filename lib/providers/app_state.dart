@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
 final ValueNotifier<double> fontSizeNotifier = ValueNotifier(18.0);
 final ValueNotifier<String> fontFamilyNotifier = ValueNotifier('Shiromeda');
+final ValueNotifier<String> notificationPrefNotifier = ValueNotifier('None');
 
 const List<String> availableFonts = [
   'Addis Abeba',
@@ -36,6 +37,11 @@ Future<void> initAppState() async {
     fontFamilyNotifier.value = fontFamily;
   }
 
+  final String? notificationPref = prefs.getString('notificationPref');
+  if (notificationPref != null) {
+    notificationPrefNotifier.value = notificationPref;
+  }
+
   // Save preferences when they change
   themeNotifier.addListener(() {
     prefs.setInt('themeMode', themeNotifier.value.index);
@@ -47,5 +53,9 @@ Future<void> initAppState() async {
   
   fontFamilyNotifier.addListener(() {
     prefs.setString('fontFamily', fontFamilyNotifier.value);
+  });
+  
+  notificationPrefNotifier.addListener(() {
+    prefs.setString('notificationPref', notificationPrefNotifier.value);
   });
 }

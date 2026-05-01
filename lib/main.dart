@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'providers/app_state.dart';
+import 'services/notification_service.dart';
 import 'ui/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initAppState();
+  await NotificationService.init();
   runApp(const PrayerApp());
 }
 
