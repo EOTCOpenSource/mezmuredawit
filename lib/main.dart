@@ -24,15 +24,28 @@ class PrayerApp extends StatelessWidget {
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF6750A4),
+              seedColor: const Color(0xFF9E2A2B), // Maroon/Dark Red
               brightness: Brightness.light,
+              surface: const Color(0xFFF9F9F9),
+            ),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFFF9F9F9),
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
             ),
           ),
           darkTheme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF6750A4),
+              seedColor: const Color(0xFF9E2A2B),
               brightness: Brightness.dark,
+              surface: const Color(0xFF121212),
+            ),
+            scaffoldBackgroundColor: const Color(0xFF121212),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF121212),
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
             ),
           ),
           themeMode: currentMode,
@@ -203,23 +216,28 @@ class _HomePageState extends State<HomePage> {
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
-                  SliverAppBar.large(
-                    title: Text(_selectedDay?.name ?? 'መዝሙረ ዳዊት'),
+                  SliverAppBar(
+                    pinned: true,
+                    floating: true,
+                    leading: Builder(
+                      builder: (context) => IconButton(
+                        icon: const Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                      ),
+                    ),
+                    title: Text('መዝሙረ ዳዊት $_currentChapterNumber'),
+                    centerTitle: true,
                     actions: [
                       IconButton(
                         icon: const Icon(Icons.format_size),
                         onPressed: _showSettingsSheet,
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.grid_view_rounded),
-                        onPressed: _showChapterSelector,
-                      ),
                     ],
                     bottom: PreferredSize(
-                      preferredSize: const Size.fromHeight(4),
+                      preferredSize: const Size.fromHeight(2),
                       child: LinearProgressIndicator(
                         value: progress,
-                        minHeight: 4,
+                        minHeight: 2,
                         backgroundColor: Colors.transparent,
                       ),
                     ),
@@ -227,13 +245,13 @@ class _HomePageState extends State<HomePage> {
                   if (currentChapter != null)
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
+                        horizontal: 10,
                         vertical: 10,
                       ),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) =>
-                              _buildSection(currentChapter!.sections[index]),
+                              _buildSection(currentChapter!.sections[index], index),
                           childCount: currentChapter.sections.length,
                         ),
                       ),
@@ -247,98 +265,184 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSection(Section section) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (section.title.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: Center(
+  Widget _buildSection(Section section, int sectionIndex) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (sectionIndex == 0) ...[
+            Center(
               child: Text(
-                section.title,
-                textAlign: TextAlign.center,
+                'ምዕራፍ $_currentChapterNumber',
                 style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary,
-                  letterSpacing: 1.2,
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+          ],
+          if (section.title.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Center(
+                child: Text(
+                  section.title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ),
+          ValueListenableBuilder<double>(
+            valueListenable: fontSizeNotifier,
+            builder: (context, fontSize, _) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: section.verses.asMap().entries.map((entry) {
+                  return _buildVerseTile(entry.value, fontSize, sectionIndex == 0 && entry.key == 0);
+                }).toList(),
+              );
+            },
           ),
-        ValueListenableBuilder<double>(
-          valueListenable: fontSizeNotifier,
-          builder: (context, fontSize, _) {
-            return Column(
-              children: section.verses
-                  .map((v) => _buildVerseTile(v, fontSize))
-                  .toList(),
-            );
-          },
-        ),
-      ],
+          const SizedBox(height: 24),
+        ],
+      ),
     );
   }
 
-  Widget _buildVerseTile(Verse verse, double fontSize) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildVerseTile(Verse verse, double fontSize, bool isFirstVerse) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    
+    Widget verseContent = RichText(
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: fontSize,
+          height: 1.6,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
         children: [
-          CircleAvatar(
-            radius: 12,
-            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-            child: Text(
-              '${verse.verse}',
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+          TextSpan(
+            text: '${verse.verse} ',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: primaryColor,
+              fontSize: fontSize * 0.8,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              verse.text,
-              style: TextStyle(
-                fontSize: fontSize,
-                height: 1.6,
-                fontWeight: FontWeight.w400,
-              ),
+          TextSpan(text: verse.text),
+          TextSpan(
+            text: ' ※',
+            style: TextStyle(
+              color: primaryColor,
+              fontSize: fontSize * 0.8,
             ),
           ),
         ],
       ),
+    );
+
+    if (isFirstVerse) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$_currentChapterNumber',
+              style: TextStyle(
+                fontSize: fontSize * 3.2,
+                height: 1.1,
+                fontWeight: FontWeight.w400,
+                color: primaryColor,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: verseContent,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: verseContent,
     );
   }
 
   Widget _buildBottomNav() {
     if (_selectedDay == null) return const SizedBox.shrink();
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).dividerColor.withOpacity(0.1),
+          ),
+        ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton.filledTonal(
-            onPressed: _currentChapterNumber > _selectedDay!.startChapter
-                ? () => _changeChapter(_currentChapterNumber - 1)
-                : null,
-            icon: const Icon(Icons.chevron_left),
-          ),
-          Text(
-            'Chapter $_currentChapterNumber',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          IconButton.filledTonal(
-            onPressed: _currentChapterNumber < _selectedDay!.endChapter
-                ? () => _changeChapter(_currentChapterNumber + 1)
-                : null,
-            icon: const Icon(Icons.chevron_right),
-          ),
-        ],
+      child: SafeArea(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+              onPressed: _currentChapterNumber > _selectedDay!.startChapter
+                  ? () => _changeChapter(_currentChapterNumber - 1)
+                  : null,
+              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings_outlined, size: 22),
+              onPressed: _showSettingsSheet,
+            ),
+            Flexible(
+              child: InkWell(
+                onTap: _showChapterSelector,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'መዝሙር $_currentChapterNumber',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_drop_down, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            IconButton(
+              onPressed: _currentChapterNumber < _selectedDay!.endChapter
+                  ? () => _changeChapter(_currentChapterNumber + 1)
+                  : null,
+              icon: const Icon(Icons.arrow_forward_ios, size: 20),
+            ),
+          ],
+        ),
       ),
     );
   }
