@@ -162,9 +162,26 @@ final List<DayConfig> days = [
     return Scaffold(
       body: _isLoading 
           ? const Center(child: CircularProgressIndicator()) 
-          : CustomScrollView(
-              controller: _scrollController,
-              slivers: [
+          : GestureDetector(
+              onHorizontalDragEnd: (details) {
+                if (details.primaryVelocity != null) {
+                  const int sensitivity = 300;
+                  if (details.primaryVelocity! < -sensitivity) {
+                    // Swiped Left -> Next Chapter
+                    if (_selectedDay != null && _currentChapterNumber < _selectedDay!.endChapter) {
+                      _changeChapter(_currentChapterNumber + 1);
+                    }
+                  } else if (details.primaryVelocity! > sensitivity) {
+                    // Swiped Right -> Previous Chapter
+                    if (_selectedDay != null && _currentChapterNumber > _selectedDay!.startChapter) {
+                      _changeChapter(_currentChapterNumber - 1);
+                    }
+                  }
+                }
+              },
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
                 SliverAppBar.large(
                   title: Text(_selectedDay?.name ?? 'መዝሙረ ዳዊት'),
                   actions: [
@@ -195,6 +212,7 @@ final List<DayConfig> days = [
                 const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             ),
+          ),
       drawer: _buildDrawer(),
       bottomSheet: _buildBottomNav(),
     );
