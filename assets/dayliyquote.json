@@ -1,0 +1,76 @@
+{
+  "ethiopian_orthodox_psalter_schedule": {
+    "monday": {
+      "chapters": "1-30",
+      "daily_quotes": [
+        { "psalm": 1, "verses": "1-3" },
+        { "psalm": 4, "verses": "8" },
+        { "psalm": 8, "verses": "1-9" },
+        { "psalm": 15, "verses": "1-2" },
+        { "psalm": 19, "verses": "1-4" },
+        { "psalm": 23, "verses": "1-6" },
+        { "psalm": 27, "verses": "1-4" }
+      ]
+    },
+    "tuesday": {
+      "chapters": "31-60",
+      "daily_quotes": [
+        { "psalm": 32, "verses": "1-2" },
+        { "psalm": 34, "verses": "1-8" },
+        { "psalm": 37, "verses": "3-5" },
+        { "psalm": 42, "verses": "1-2" },
+        { "psalm": 46, "verses": "1-3" },
+        { "psalm": 51, "verses": "10-12" },
+        { "psalm": 55, "verses": "22" }
+      ]
+    },
+    "wednesday": {
+      "chapters": "61-80",
+      "daily_quotes": [
+        { "psalm": 62, "verses": "1-2" },
+        { "psalm": 63, "verses": "1-3" },
+        { "psalm": 67, "verses": "1-2" },
+        { "psalm": 71, "verses": "5-8" },
+        { "psalm": 73, "verses": "25-26" },
+        { "psalm": 77, "verses": "11-14" },
+        { "psalm": 80, "verses": "18-19" }
+      ]
+    },
+    "thursday": {
+      "chapters": "81-110",
+      "daily_quotes": [
+        { "psalm": 84, "verses": "1-2" },
+        { "psalm": 86, "verses": "11-12" },
+        { "psalm": 90, "verses": "1-2" },
+        { "psalm": 91, "verses": "1-11" },
+        { "psalm": 100, "verses": "1-5" },
+        { "psalm": 103, "verses": "1-5" },
+        { "psalm": 107, "verses": "1-9" }
+      ]
+    },
+    "friday": {
+      "chapters": "111-130",
+      "daily_quotes": [
+        { "psalm": 111, "verses": "10" },
+        { "psalm": 113, "verses": "1-3" },
+        { "psalm": 116, "verses": "1-2" },
+        { "psalm": 118, "verses": "24" },
+        { "psalm": 119, "verses": "105" },
+        { "psalm": 121, "verses": "1-8" },
+        { "psalm": 126, "verses": "5-6" }
+      ]
+    },
+    "saturday": {
+      "chapters": "131-150",
+      "daily_quotes": [
+        { "psalm": 133, "verses": "1" },
+        { "psalm": 136, "verses": "1-26" },
+        { "psalm": 138, "verses": "3" },
+        { "psalm": 139, "verses": "1-14" },
+        { "psalm": 145, "verses": "14-16" },
+        { "psalm": 147, "verses": "3" },
+        { "psalm": 150, "verses": "1-6" }
+      ]
+    }
+  }
+}

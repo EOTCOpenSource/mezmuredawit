@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
+import '../../providers/app_state.dart';
 
 class SidebarDrawer extends StatelessWidget {
   final DayConfig? selectedDay;
   final ValueChanged<DayConfig> onDaySelected;
+  final String? dailyQuoteText;
 
   const SidebarDrawer({
     Key? key,
     required this.selectedDay,
     required this.onDaySelected,
+    this.dailyQuoteText,
   }) : super(key: key);
 
   @override
@@ -16,8 +19,8 @@ class SidebarDrawer extends StatelessWidget {
     return Drawer(
       child: Column(
         children: [
-          DrawerHeader(
-            padding: const EdgeInsets.all(20),
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -28,15 +31,15 @@ class SidebarDrawer extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: const SizedBox(
+            child: SizedBox(
               width: double.infinity,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.menu_book_rounded, color: Colors.white, size: 42),
-                  Spacer(),
-                  Text(
+                  const Icon(Icons.menu_book_rounded, color: Colors.white, size: 42),
+                  const SizedBox(height: 16),
+                  const Text(
                     "መዝሙረ ዳዊት",
                     style: TextStyle(
                       color: Colors.white,
@@ -44,10 +47,27 @@ class SidebarDrawer extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(
+                  const Text(
                     "Daily Prayer Guide",
                     style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
+                  if (dailyQuoteText != null) ...[
+                    const SizedBox(height: 16),
+                    ValueListenableBuilder<String>(
+                      valueListenable: fontFamilyNotifier,
+                      builder: (context, font, _) {
+                        return Text(
+                          dailyQuoteText!,
+                          style: TextStyle(
+                            fontFamily: font,
+                            color: Colors.white.withOpacity(0.95),
+                            fontSize: 15,
+                            height: 1.4,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),

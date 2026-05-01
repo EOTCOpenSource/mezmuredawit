@@ -59,6 +59,7 @@ flutter:
 
   assets:
     - assets/psalms.json
+    - assets/dayliyquote.json
 
   fonts:
     - family: Addis Abeba

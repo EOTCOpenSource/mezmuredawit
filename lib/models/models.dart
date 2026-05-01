@@ -44,3 +44,10 @@ final List<DayConfig> days = [
   DayConfig('Friday (አርብ)', 111, 130),
   DayConfig('Saturday (ቅዳሜ)', 131, 150),
 ];
+
+class DailyQuote {
+  final int psalm;
+  final String verses;
+
+  DailyQuote({required this.psalm, required this.verses});
+}

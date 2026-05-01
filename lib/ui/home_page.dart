@@ -15,10 +15,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Chapter> _chapters = [];
+  Map<String, List<DailyQuote>> _quotes = {};
   bool _isLoading = true;
   DayConfig? _selectedDay;
   int _currentChapterNumber = 1;
   PageController? _pageController;
+  String? _dailyQuoteText;
 
   @override
   void initState() {
@@ -35,13 +37,49 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadData() async {
     try {
       final chapters = await DataService.loadPsalms();
+      final quotes = await DataService.loadQuotes();
       setState(() {
         _chapters = chapters;
+        _quotes = quotes;
         _autoSelectDay();
         _isLoading = false;
       });
     } catch (e) {
       setState(() => _isLoading = false);
+    }
+  }
+
+  void _updateDailyQuote() {
+    if (_selectedDay == null || _quotes.isEmpty) return;
+    
+    String key = _selectedDay!.name.split(' ')[0].toLowerCase();
+    
+    List<DailyQuote>? dayQuotes = _quotes[key];
+    if (dayQuotes != null && dayQuotes.isNotEmpty) {
+      // Create simple hash of datetime so it doesn't change every millisecond
+      final randomQuote = dayQuotes[DateTime.now().second % dayQuotes.length];
+      
+      Chapter? chapter;
+      try {
+        chapter = _chapters.firstWhere((c) => c.chapter == randomQuote.psalm);
+      } catch (_) {
+        return;
+      }
+      
+      String verseText = "";
+      List<String> range = randomQuote.verses.split('-');
+      int start = int.tryParse(range[0]) ?? 1;
+      int end = range.length > 1 ? (int.tryParse(range[1]) ?? start) : start;
+      
+      for (var section in chapter.sections) {
+        for (var v in section.verses) {
+          if (v.verse >= start && v.verse <= end) {
+            verseText += "${v.text} ";
+          }
+        }
+      }
+      
+      _dailyQuoteText = "${verseText.trim()}\n\n— መዝሙር ${randomQuote.psalm}:${randomQuote.verses}";
     }
   }
 
@@ -51,6 +89,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedDay = day;
       _currentChapterNumber = day.startChapter;
+      _updateDailyQuote();
     });
     _pageController = PageController(initialPage: 0);
   }
@@ -59,6 +98,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedDay = day;
       _currentChapterNumber = day.startChapter;
+      _updateDailyQuote();
     });
     _pageController?.jumpToPage(0);
   }
@@ -162,6 +202,7 @@ class _HomePageState extends State<HomePage> {
       drawer: SidebarDrawer(
         selectedDay: _selectedDay,
         onDaySelected: _selectDay,
+        dailyQuoteText: _dailyQuoteText,
       ),
       bottomSheet: BottomNav(
         selectedDay: _selectedDay,
