@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
+
 void main() {
   runApp(const PrayerApp());
 }
@@ -11,31 +13,36 @@ class PrayerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mezmure Dawit',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6750A4),
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-        ),
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6750A4),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-        ),
-      ),
-      themeMode: ThemeMode.system,
-      home: const HomePage(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (_, ThemeMode currentMode, __) {
+        return MaterialApp(
+          title: 'Mezmure Dawit',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF6750A4),
+              brightness: Brightness.light,
+            ),
+            useMaterial3: true,
+            appBarTheme: const AppBarTheme(
+              centerTitle: true,
+            ),
+          ),
+          darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF6750A4),
+              brightness: Brightness.dark,
+            ),
+            useMaterial3: true,
+            appBarTheme: const AppBarTheme(
+              centerTitle: true,
+            ),
+          ),
+          themeMode: currentMode,
+          home: const HomePage(),
+        );
+      },
     );
   }
 }
@@ -214,6 +221,31 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text(_selectedDay != null ? '${_selectedDay!.name} - Ch $_currentChapterNumber' : _bookNameAm),
         actions: [
+          ValueListenableBuilder<ThemeMode>(
+            valueListenable: themeNotifier,
+            builder: (context, currentMode, child) {
+              return IconButton(
+                icon: Icon(
+                  currentMode == ThemeMode.light
+                      ? Icons.dark_mode
+                      : Icons.light_mode,
+                ),
+                tooltip: 'Toggle Theme',
+                onPressed: () {
+                  if (currentMode == ThemeMode.light) {
+                    themeNotifier.value = ThemeMode.dark;
+                  } else if (currentMode == ThemeMode.dark) {
+                    themeNotifier.value = ThemeMode.light;
+                  } else {
+                    final brightness = MediaQuery.of(context).platformBrightness;
+                    themeNotifier.value = brightness == Brightness.dark
+                        ? ThemeMode.light
+                        : ThemeMode.dark;
+                  }
+                },
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.list_alt),
             tooltip: 'Choose Chapter',
