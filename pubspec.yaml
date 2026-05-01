@@ -59,6 +59,39 @@ flutter:
 
   assets:
     - assets/psalms.json
+
+  fonts:
+    - family: Addis Abeba
+      fonts:
+        - asset: assets/fonts/A0_Addis_Abeba_Unicode_20030827_e3a95c0418.ttf
+    - family: Abba Garima
+      fonts:
+        - asset: assets/fonts/Abba_Garima_Regular_d8040ce97a.ttf
+    - family: Bela Hidase
+      fonts:
+        - asset: assets/fonts/Bela_Hidase_Qedmo_Extra_Bold_fa986f6c22.ttf
+    - family: Ethiopic Sadiss
+      fonts:
+        - asset: assets/fonts/Ethiopic_Sadiss_Light_9f053f0273.ttf
+    - family: Geez Handwriting
+      fonts:
+        - asset: assets/fonts/Geez_Handwriting_ea6b90e5a8.ttf
+        - asset: assets/fonts/Geez_Handwriting_Bold_797edd48ee.ttf
+          weight: 700
+    - family: Nokia Pureheadline
+      fonts:
+        - asset: assets/fonts/Nokia_Pureheadline_Light_55fdcc36e6.ttf
+    - family: Selam
+      fonts:
+        - asset: assets/fonts/Selam_Regular_a59259475e.otf
+    - family: Shiromeda
+      fonts:
+        - asset: assets/fonts/Shiromeda_Regular_3cc9866348.ttf
+        - asset: assets/fonts/Shiromeda_Bold_0ad34492db.ttf
+          weight: 700
+    - family: Kiros
+      fonts:
+        - asset: assets/fonts/kiros_61f90ce99a.ttf
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

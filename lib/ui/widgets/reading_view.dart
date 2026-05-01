@@ -57,15 +57,20 @@ class ReadingView extends StatelessWidget {
                 ),
               ),
             ),
-          ValueListenableBuilder<double>(
-            valueListenable: fontSizeNotifier,
-            builder: (context, fontSize, _) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: section.verses.asMap().entries.map((entry) {
-                  return _buildVerseTile(
-                      context, entry.value, fontSize, sectionIndex == 0 && entry.key == 0);
-                }).toList(),
+          ValueListenableBuilder<String>(
+            valueListenable: fontFamilyNotifier,
+            builder: (context, fontFamily, _) {
+              return ValueListenableBuilder<double>(
+                valueListenable: fontSizeNotifier,
+                builder: (context, fontSize, _) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: section.verses.asMap().entries.map((entry) {
+                      return _buildVerseTile(
+                          context, entry.value, fontSize, fontFamily, sectionIndex == 0 && entry.key == 0);
+                    }).toList(),
+                  );
+                },
               );
             },
           ),
@@ -76,12 +81,13 @@ class ReadingView extends StatelessWidget {
   }
 
   Widget _buildVerseTile(
-      BuildContext context, Verse verse, double fontSize, bool isFirstVerse) {
+      BuildContext context, Verse verse, double fontSize, String fontFamily, bool isFirstVerse) {
     final primaryColor = Theme.of(context).colorScheme.primary;
 
     Widget verseContent = RichText(
       text: TextSpan(
         style: TextStyle(
+          fontFamily: fontFamily,
           fontSize: fontSize,
           height: 1.6,
           color: Theme.of(context).colorScheme.onSurface,
@@ -90,6 +96,7 @@ class ReadingView extends StatelessWidget {
           TextSpan(
             text: '${verse.verse} ',
             style: TextStyle(
+              fontFamily: fontFamily,
               fontWeight: FontWeight.bold,
               color: primaryColor,
               fontSize: fontSize * 0.8,
@@ -99,6 +106,7 @@ class ReadingView extends StatelessWidget {
           TextSpan(
             text: ' ※',
             style: TextStyle(
+              fontFamily: fontFamily,
               color: primaryColor,
               fontSize: fontSize * 0.8,
             ),
@@ -116,6 +124,7 @@ class ReadingView extends StatelessWidget {
             Text(
               '${chapter.chapter}',
               style: TextStyle(
+                fontFamily: fontFamily,
                 fontSize: fontSize * 3.2,
                 height: 1.1,
                 fontWeight: FontWeight.w400,
