@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
+final ValueNotifier<double> fontSizeNotifier = ValueNotifier(18.0);
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const PrayerApp());
 }
 
@@ -15,28 +17,22 @@ class PrayerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeNotifier,
-      builder: (_, ThemeMode currentMode, __) {
+      builder: (_, currentMode, __) {
         return MaterialApp(
           title: 'Mezmure Dawit',
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
+            useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color(0xFF6750A4),
               brightness: Brightness.light,
             ),
-            useMaterial3: true,
-            appBarTheme: const AppBarTheme(
-              centerTitle: true,
-            ),
           ),
           darkTheme: ThemeData(
+            useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color(0xFF6750A4),
               brightness: Brightness.dark,
-            ),
-            useMaterial3: true,
-            appBarTheme: const AppBarTheme(
-              centerTitle: true,
             ),
           ),
           themeMode: currentMode,
@@ -47,14 +43,12 @@ class PrayerApp extends StatelessWidget {
   }
 }
 
+// --- Data Models (Keep your existing logic) ---
 class Verse {
   final int verse;
   final String text;
   Verse({required this.verse, required this.text});
-  factory Verse.fromJson(Map<String, dynamic> json) => Verse(
-        verse: json['verse'],
-        text: json['text'],
-      );
+  factory Verse.fromJson(Map<String, dynamic> json) => Verse(verse: json['verse'], text: json['text']);
 }
 
 class Section {
@@ -91,22 +85,21 @@ final List<DayConfig> days = [
   DayConfig('Thursday (ሐሙስ)', 81, 110),
   DayConfig('Friday (አርብ)', 111, 130),
   DayConfig('Saturday (ቅዳሜ)', 131, 150),
-];
+  ];
 
-class HomePage extends StatefulWidget {
+  // --- Main UI ---
+  class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
-
   @override
   State<HomePage> createState() => _HomePageState();
-}
+  }
 
-class _HomePageState extends State<HomePage> {
+  class _HomePageState extends State<HomePage> {
   List<Chapter> _chapters = [];
   bool _isLoading = true;
-  String _bookNameAm = 'መዝሙረ ዳዊት';
-
   DayConfig? _selectedDay;
   int _currentChapterNumber = 1;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -118,34 +111,22 @@ class _HomePageState extends State<HomePage> {
     try {
       final String jsonString = await rootBundle.loadString('assets/psalms.json');
       final Map<String, dynamic> jsonData = jsonDecode(jsonString);
-      
       setState(() {
-        _bookNameAm = jsonData['book_name_am'] ?? 'መዝሙረ ዳዊት';
         final chaptersData = jsonData['chapters'] as List?;
         if (chaptersData != null) {
           _chapters = chaptersData.map((c) => Chapter.fromJson(c)).toList();
         }
-        
-        // Auto-select day based on current weekday
         _autoSelectDay();
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error loading JSON: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   void _autoSelectDay() {
-    int weekday = DateTime.now().weekday; // 1 = Monday, 7 = Sunday
-    if (weekday >= 1 && weekday <= 6) {
-      _selectDay(days[weekday - 1]);
-    } else {
-      // It's Sunday (7), fallback to Monday or just show Monday by default
-      _selectDay(days[0]);
-    }
+    int weekday = DateTime.now().weekday;
+    _selectDay(weekday >= 1 && weekday <= 6 ? days[weekday - 1] : days[0]);
   }
 
   void _selectDay(DayConfig day) {
@@ -153,257 +134,299 @@ class _HomePageState extends State<HomePage> {
       _selectedDay = day;
       _currentChapterNumber = day.startChapter;
     });
-  }
-
-  void _changeChapter(int newChapter) {
-    if (_selectedDay == null) return;
-    if (newChapter >= _selectedDay!.startChapter && newChapter <= _selectedDay!.endChapter) {
-      setState(() {
-        _currentChapterNumber = newChapter;
-      });
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     }
   }
 
-  void _showChapterSelector() {
-    if (_selectedDay == null) return;
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Select Chapter',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _selectedDay!.endChapter - _selectedDay!.startChapter + 1,
-                itemBuilder: (context, index) {
-                  int chapterNum = _selectedDay!.startChapter + index;
-                  return ListTile(
-                    title: Text('Chapter $chapterNum'),
-                    trailing: _currentChapterNumber == chapterNum
-                        ? const Icon(Icons.check, color: Colors.deepPurple)
-                        : null,
-                    onTap: () {
-                      _changeChapter(chapterNum);
-                      Navigator.pop(context);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  void _changeChapter(int newChapter) {
+    if (newChapter >= _selectedDay!.startChapter && newChapter <= _selectedDay!.endChapter) {
+      setState(() => _currentChapterNumber = newChapter);
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     Chapter? currentChapter;
     if (_chapters.isNotEmpty) {
-      try {
-        currentChapter = _chapters.firstWhere((c) => c.chapter == _currentChapterNumber);
-      } catch (e) {
-        currentChapter = null;
-      }
+      currentChapter = _chapters.firstWhere((c) => c.chapter == _currentChapterNumber, orElse: () => _chapters.first);
     }
 
+    double progress = _selectedDay == null 
+        ? 0 
+        : (_currentChapterNumber - _selectedDay!.startChapter + 1) / (_selectedDay!.endChapter - _selectedDay!.startChapter + 1);
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_selectedDay != null ? '${_selectedDay!.name} - Ch $_currentChapterNumber' : _bookNameAm),
-        actions: [
-          ValueListenableBuilder<ThemeMode>(
-            valueListenable: themeNotifier,
-            builder: (context, currentMode, child) {
-              return IconButton(
-                icon: Icon(
-                  currentMode == ThemeMode.light
-                      ? Icons.dark_mode
-                      : Icons.light_mode,
+      body: _isLoading 
+          ? const Center(child: CircularProgressIndicator()) 
+          : CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                SliverAppBar.large(
+                  title: Text(_selectedDay?.name ?? 'መዝሙረ ዳዊት'),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.format_size),
+                      onPressed: _showSettingsSheet,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.grid_view_rounded),
+                      onPressed: _showChapterSelector,
+                    ),
+                  ],
+                  bottom: PreferredSize(
+                    preferredSize: const Size.fromHeight(4),
+                    child: LinearProgressIndicator(value: progress, minHeight: 4, backgroundColor: Colors.transparent),
+                  ),
                 ),
-                tooltip: 'Toggle Theme',
-                onPressed: () {
-                  if (currentMode == ThemeMode.light) {
-                    themeNotifier.value = ThemeMode.dark;
-                  } else if (currentMode == ThemeMode.dark) {
-                    themeNotifier.value = ThemeMode.light;
-                  } else {
-                    final brightness = MediaQuery.of(context).platformBrightness;
-                    themeNotifier.value = brightness == Brightness.dark
-                        ? ThemeMode.light
-                        : ThemeMode.dark;
-                  }
-                },
-              );
-            },
+                if (currentChapter != null)
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _buildSection(currentChapter!.sections[index]),
+                        childCount: currentChapter.sections.length,
+                      ),
+                    ),
+                  ),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              ],
+            ),
+      drawer: _buildDrawer(),
+      bottomSheet: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildSection(Section section) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (section.title.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text(
+                section.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: Theme.of(context).colorScheme.primary,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.list_alt),
-            tooltip: 'Choose Chapter',
-            onPressed: _showChapterSelector,
-          )
+        ValueListenableBuilder<double>(
+          valueListenable: fontSizeNotifier,
+          builder: (context, fontSize, _) {
+            return Column(
+              children: section.verses.map((v) => _buildVerseTile(v, fontSize)).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerseTile(Verse verse, double fontSize) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 12,
+            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+            child: Text('${verse.verse}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              verse.text,
+              style: TextStyle(fontSize: fontSize, height: 1.6, fontWeight: FontWeight.w400),
+            ),
+          ),
         ],
       ),
-      drawer: Drawer(
+    );
+  }
+
+  Widget _buildBottomNav() {
+    if (_selectedDay == null) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton.filledTonal(
+            onPressed: _currentChapterNumber > _selectedDay!.startChapter ? () => _changeChapter(_currentChapterNumber - 1) : null,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          Text('Chapter $_currentChapterNumber', style: const TextStyle(fontWeight: FontWeight.bold)),
+          IconButton.filledTonal(
+            onPressed: _currentChapterNumber < _selectedDay!.endChapter ? () => _changeChapter(_currentChapterNumber + 1) : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSettingsSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            UserAccountsDrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-              ),
-              accountName: Text(
-                _bookNameAm,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              accountEmail: Text(
-                'Daily Prayer App',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                child: const Icon(Icons.book, color: Colors.white),
+            const Text("Adjust Reading Experience", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            ValueListenableBuilder<double>(
+              valueListenable: fontSizeNotifier,
+              builder: (context, val, _) => Slider(
+                value: val,
+                min: 14, max: 32,
+                onChanged: (v) => fontSizeNotifier.value = v,
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Select Day',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: days.length,
-                itemBuilder: (context, index) {
-                  final day = days[index];
-                  final isSelected = _selectedDay == day;
-                  return ListTile(
-                    leading: const Icon(Icons.calendar_today),
-                    title: Text(day.name),
-                    subtitle: Text('Chapters ${day.startChapter} - ${day.endChapter}'),
-                    selected: isSelected,
-                    selectedTileColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5),
-                    onTap: () {
-                      _selectDay(day);
-                      Navigator.pop(context); // close drawer
-                    },
-                  );
-                },
-              ),
+            ListTile(
+              leading: const Icon(Icons.brightness_6),
+              title: const Text("Toggle Dark Mode"),
+              onTap: () {
+                themeNotifier.value = themeNotifier.value == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+              },
             ),
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : currentChapter == null
-              ? const Center(child: Text('Chapter not found.'))
-              : _buildChapterView(currentChapter),
-      bottomNavigationBar: _selectedDay == null
-          ? null
-          : BottomAppBar(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: _currentChapterNumber > _selectedDay!.startChapter
-                          ? () => _changeChapter(_currentChapterNumber - 1)
-                          : null,
-                      icon: const Icon(Icons.arrow_back_ios, size: 16),
-                      label: const Text('Prev'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      ),
-                    ),
-                    Text(
-                      '${_currentChapterNumber} / ${_selectedDay!.endChapter}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: _currentChapterNumber < _selectedDay!.endChapter
-                          ? () => _changeChapter(_currentChapterNumber + 1)
-                          : null,
-                      icon: const Icon(Icons.arrow_forward_ios, size: 16),
-                      label: const Text('Next'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
     );
   }
 
-  Widget _buildChapterView(Chapter chapter) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: chapter.sections.length,
-      itemBuilder: (context, sectionIndex) {
-        final section = chapter.sections[sectionIndex];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (section.title.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
-                child: Center(
-                  child: Text(
-                    section.title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
+  void _showChapterSelector() {
+     showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        expand: false,
+        builder: (_, controller) => GridView.builder(
+          controller: controller,
+          padding: const EdgeInsets.all(20),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, mainAxisSpacing: 10, crossAxisSpacing: 10),
+          itemCount: _selectedDay!.endChapter - _selectedDay!.startChapter + 1,
+          itemBuilder: (context, index) {
+            int ch = _selectedDay!.startChapter + index;
+            bool isCurrent = ch == _currentChapterNumber;
+            return InkWell(
+              onTap: () { _changeChapter(ch); Navigator.pop(context); },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isCurrent ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceVariant,
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                alignment: Alignment.center,
+                child: Text('$ch', style: TextStyle(color: isCurrent ? Colors.white : null, fontWeight: FontWeight.bold)),
               ),
-            ...section.verses.map((verse) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: RichText(
-                    text: TextSpan(
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontSize: 18,
-                            height: 1.5,
-                          ),
-                      children: [
-                        TextSpan(
-                          text: '${verse.verse}. ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.secondary,
-                            fontSize: 14,
-                          ),
-                        ),
-                        TextSpan(text: verse.text),
-                      ],
-                    ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: Column(
+        children: [
+          DrawerHeader(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.tertiary,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: const SizedBox(
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.menu_book_rounded, color: Colors.white, size: 42),
+                  Spacer(),
+                  Text(
+                    "መዝሙረ ዳዊት",
+                    style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                   ),
-                )),
-            const SizedBox(height: 16),
-          ],
-        );
-      },
+                  Text(
+                    "Daily Prayer Guide",
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              children: days.map((day) {
+                final isSelected = _selectedDay == day;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 4.0),
+                  child: ListTile(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    tileColor: isSelected ? Theme.of(context).colorScheme.primaryContainer : Colors.transparent,
+                    title: Text(
+                      day.name,
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        color: isSelected ? Theme.of(context).colorScheme.onPrimaryContainer : null,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Chapters ${day.startChapter} - ${day.endChapter}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isSelected ? Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.7) : Colors.grey,
+                      ),
+                    ),
+                    selected: isSelected,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.2) : Theme.of(context).colorScheme.surfaceVariant,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.calendar_today_rounded,
+                        size: 20,
+                        color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    onTap: () { 
+                      _selectDay(day); 
+                      Navigator.pop(context); 
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
