@@ -82,4 +82,44 @@ class NotificationService {
   static Future<void> cancelAll() async {
     await flutterLocalNotificationsPlugin.cancelAll();
   }
+
+  static Future<void> sendTestNotification() async {
+    // Request permissions
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+
+    const AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+      'prayer_reminders_test',
+      'Test Reminders',
+      channelDescription: 'Notifications for testing',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    const NotificationDetails notificationDetails =
+        NotificationDetails(android: androidNotificationDetails);
+
+    int weekday = DateTime.now().weekday;
+    String start = '1';
+    String end = '30';
+    
+    switch (weekday) {
+      case 1: start = '1'; end = '30'; break;
+      case 2: start = '31'; end = '60'; break;
+      case 3: start = '61'; end = '80'; break;
+      case 4: start = '81'; end = '110'; break;
+      case 5: start = '111'; end = '130'; break;
+      case 6: start = '131'; end = '150'; break;
+      case 7: start = '1'; end = '30'; break;
+    }
+
+    await flutterLocalNotificationsPlugin.show(
+      id: 99,
+      title: 'የዕለቱ መዝሙረ ዳዊት (ሙከራ)',
+      body: 'መዝሙረ ዳዊት ከ $start እስከ $end ያንብቡ',
+      notificationDetails: notificationDetails,
+    );
+  }
 }

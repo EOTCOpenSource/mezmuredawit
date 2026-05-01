@@ -107,6 +107,16 @@ class SettingsSheet extends StatelessWidget {
                   : ThemeMode.light;
             },
           ),
+          const SizedBox(height: 16),
+          Center(
+            child: OutlinedButton.icon(
+              onPressed: () {
+                NotificationService.sendTestNotification();
+              },
+              icon: const Icon(Icons.bug_report),
+              label: const Text("Debug: Test Notification"),
+            ),
+          ),
         ],
       ),
     );
