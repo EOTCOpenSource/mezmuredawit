@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'providers/app_state.dart';
 import 'ui/home_page.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initAppState();
   runApp(const PrayerApp());
 }
 
