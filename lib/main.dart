@@ -48,7 +48,8 @@ class Verse {
   final int verse;
   final String text;
   Verse({required this.verse, required this.text});
-  factory Verse.fromJson(Map<String, dynamic> json) => Verse(verse: json['verse'], text: json['text']);
+  factory Verse.fromJson(Map<String, dynamic> json) =>
+      Verse(verse: json['verse'], text: json['text']);
 }
 
 class Section {
@@ -56,9 +57,10 @@ class Section {
   final List<Verse> verses;
   Section({required this.title, required this.verses});
   factory Section.fromJson(Map<String, dynamic> json) => Section(
-        title: json['title'] ?? '',
-        verses: (json['verses'] as List?)?.map((v) => Verse.fromJson(v)).toList() ?? [],
-      );
+    title: json['title'] ?? '',
+    verses:
+        (json['verses'] as List?)?.map((v) => Verse.fromJson(v)).toList() ?? [],
+  );
 }
 
 class Chapter {
@@ -66,9 +68,11 @@ class Chapter {
   final List<Section> sections;
   Chapter({required this.chapter, required this.sections});
   factory Chapter.fromJson(Map<String, dynamic> json) => Chapter(
-        chapter: json['chapter'],
-        sections: (json['sections'] as List?)?.map((s) => Section.fromJson(s)).toList() ?? [],
-      );
+    chapter: json['chapter'],
+    sections:
+        (json['sections'] as List?)?.map((s) => Section.fromJson(s)).toList() ??
+        [],
+  );
 }
 
 class DayConfig {
@@ -85,16 +89,16 @@ final List<DayConfig> days = [
   DayConfig('Thursday (ሐሙስ)', 81, 110),
   DayConfig('Friday (አርብ)', 111, 130),
   DayConfig('Saturday (ቅዳሜ)', 131, 150),
-  ];
+];
 
-  // --- Main UI ---
-  class HomePage extends StatefulWidget {
+// --- Main UI ---
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
   @override
   State<HomePage> createState() => _HomePageState();
-  }
+}
 
-  class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> {
   List<Chapter> _chapters = [];
   bool _isLoading = true;
   DayConfig? _selectedDay;
@@ -109,7 +113,9 @@ final List<DayConfig> days = [
 
   Future<void> _loadData() async {
     try {
-      final String jsonString = await rootBundle.loadString('assets/psalms.json');
+      final String jsonString = await rootBundle.loadString(
+        'assets/psalms.json',
+      );
       final Map<String, dynamic> jsonData = jsonDecode(jsonString);
       setState(() {
         final chaptersData = jsonData['chapters'] as List?;
@@ -135,15 +141,24 @@ final List<DayConfig> days = [
       _currentChapterNumber = day.startChapter;
     });
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
   }
 
   void _changeChapter(int newChapter) {
-    if (newChapter >= _selectedDay!.startChapter && newChapter <= _selectedDay!.endChapter) {
+    if (newChapter >= _selectedDay!.startChapter &&
+        newChapter <= _selectedDay!.endChapter) {
       setState(() => _currentChapterNumber = newChapter);
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeIn,
+        );
       }
     }
   }
@@ -152,28 +167,34 @@ final List<DayConfig> days = [
   Widget build(BuildContext context) {
     Chapter? currentChapter;
     if (_chapters.isNotEmpty) {
-      currentChapter = _chapters.firstWhere((c) => c.chapter == _currentChapterNumber, orElse: () => _chapters.first);
+      currentChapter = _chapters.firstWhere(
+        (c) => c.chapter == _currentChapterNumber,
+        orElse: () => _chapters.first,
+      );
     }
 
-    double progress = _selectedDay == null 
-        ? 0 
-        : (_currentChapterNumber - _selectedDay!.startChapter + 1) / (_selectedDay!.endChapter - _selectedDay!.startChapter + 1);
+    double progress = _selectedDay == null
+        ? 0
+        : (_currentChapterNumber - _selectedDay!.startChapter + 1) /
+              (_selectedDay!.endChapter - _selectedDay!.startChapter + 1);
 
     return Scaffold(
-      body: _isLoading 
-          ? const Center(child: CircularProgressIndicator()) 
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
           : GestureDetector(
               onHorizontalDragEnd: (details) {
                 if (details.primaryVelocity != null) {
                   const int sensitivity = 300;
                   if (details.primaryVelocity! < -sensitivity) {
                     // Swiped Left -> Next Chapter
-                    if (_selectedDay != null && _currentChapterNumber < _selectedDay!.endChapter) {
+                    if (_selectedDay != null &&
+                        _currentChapterNumber < _selectedDay!.endChapter) {
                       _changeChapter(_currentChapterNumber + 1);
                     }
                   } else if (details.primaryVelocity! > sensitivity) {
                     // Swiped Right -> Previous Chapter
-                    if (_selectedDay != null && _currentChapterNumber > _selectedDay!.startChapter) {
+                    if (_selectedDay != null &&
+                        _currentChapterNumber > _selectedDay!.startChapter) {
                       _changeChapter(_currentChapterNumber - 1);
                     }
                   }
@@ -182,37 +203,45 @@ final List<DayConfig> days = [
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
-                SliverAppBar.large(
-                  title: Text(_selectedDay?.name ?? 'መዝሙረ ዳዊት'),
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.format_size),
-                      onPressed: _showSettingsSheet,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.grid_view_rounded),
-                      onPressed: _showChapterSelector,
-                    ),
-                  ],
-                  bottom: PreferredSize(
-                    preferredSize: const Size.fromHeight(4),
-                    child: LinearProgressIndicator(value: progress, minHeight: 4, backgroundColor: Colors.transparent),
-                  ),
-                ),
-                if (currentChapter != null)
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) => _buildSection(currentChapter!.sections[index]),
-                        childCount: currentChapter.sections.length,
+                  SliverAppBar.large(
+                    title: Text(_selectedDay?.name ?? 'መዝሙረ ዳዊት'),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.format_size),
+                        onPressed: _showSettingsSheet,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.grid_view_rounded),
+                        onPressed: _showChapterSelector,
+                      ),
+                    ],
+                    bottom: PreferredSize(
+                      preferredSize: const Size.fromHeight(4),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 4,
+                        backgroundColor: Colors.transparent,
                       ),
                     ),
                   ),
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
-              ],
+                  if (currentChapter != null)
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) =>
+                              _buildSection(currentChapter!.sections[index]),
+                          childCount: currentChapter.sections.length,
+                        ),
+                      ),
+                    ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
+              ),
             ),
-          ),
       drawer: _buildDrawer(),
       bottomSheet: _buildBottomNav(),
     );
@@ -242,7 +271,9 @@ final List<DayConfig> days = [
           valueListenable: fontSizeNotifier,
           builder: (context, fontSize, _) {
             return Column(
-              children: section.verses.map((v) => _buildVerseTile(v, fontSize)).toList(),
+              children: section.verses
+                  .map((v) => _buildVerseTile(v, fontSize))
+                  .toList(),
             );
           },
         ),
@@ -259,13 +290,20 @@ final List<DayConfig> days = [
           CircleAvatar(
             radius: 12,
             backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-            child: Text('${verse.verse}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+            child: Text(
+              '${verse.verse}',
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               verse.text,
-              style: TextStyle(fontSize: fontSize, height: 1.6, fontWeight: FontWeight.w400),
+              style: TextStyle(
+                fontSize: fontSize,
+                height: 1.6,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
         ],
@@ -285,12 +323,19 @@ final List<DayConfig> days = [
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton.filledTonal(
-            onPressed: _currentChapterNumber > _selectedDay!.startChapter ? () => _changeChapter(_currentChapterNumber - 1) : null,
+            onPressed: _currentChapterNumber > _selectedDay!.startChapter
+                ? () => _changeChapter(_currentChapterNumber - 1)
+                : null,
             icon: const Icon(Icons.chevron_left),
           ),
-          Text('Chapter $_currentChapterNumber', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            'Chapter $_currentChapterNumber',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           IconButton.filledTonal(
-            onPressed: _currentChapterNumber < _selectedDay!.endChapter ? () => _changeChapter(_currentChapterNumber + 1) : null,
+            onPressed: _currentChapterNumber < _selectedDay!.endChapter
+                ? () => _changeChapter(_currentChapterNumber + 1)
+                : null,
             icon: const Icon(Icons.chevron_right),
           ),
         ],
@@ -306,13 +351,17 @@ final List<DayConfig> days = [
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Adjust Reading Experience", style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              "Adjust Reading Experience",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 20),
             ValueListenableBuilder<double>(
               valueListenable: fontSizeNotifier,
               builder: (context, val, _) => Slider(
                 value: val,
-                min: 14, max: 32,
+                min: 14,
+                max: 32,
                 onChanged: (v) => fontSizeNotifier.value = v,
               ),
             ),
@@ -320,7 +369,9 @@ final List<DayConfig> days = [
               leading: const Icon(Icons.brightness_6),
               title: const Text("Toggle Dark Mode"),
               onTap: () {
-                themeNotifier.value = themeNotifier.value == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+                themeNotifier.value = themeNotifier.value == ThemeMode.light
+                    ? ThemeMode.dark
+                    : ThemeMode.light;
               },
             ),
           ],
@@ -330,7 +381,7 @@ final List<DayConfig> days = [
   }
 
   void _showChapterSelector() {
-     showModalBottomSheet(
+    showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) => DraggableScrollableSheet(
@@ -339,20 +390,35 @@ final List<DayConfig> days = [
         builder: (_, controller) => GridView.builder(
           controller: controller,
           padding: const EdgeInsets.all(20),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, mainAxisSpacing: 10, crossAxisSpacing: 10),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 5,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+          ),
           itemCount: _selectedDay!.endChapter - _selectedDay!.startChapter + 1,
           itemBuilder: (context, index) {
             int ch = _selectedDay!.startChapter + index;
             bool isCurrent = ch == _currentChapterNumber;
             return InkWell(
-              onTap: () { _changeChapter(ch); Navigator.pop(context); },
+              onTap: () {
+                _changeChapter(ch);
+                Navigator.pop(context);
+              },
               child: Container(
                 decoration: BoxDecoration(
-                  color: isCurrent ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceVariant,
+                  color: isCurrent
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.surfaceVariant,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 alignment: Alignment.center,
-                child: Text('$ch', style: TextStyle(color: isCurrent ? Colors.white : null, fontWeight: FontWeight.bold)),
+                child: Text(
+                  '$ch',
+                  style: TextStyle(
+                    color: isCurrent ? Colors.white : null,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             );
           },
@@ -387,7 +453,11 @@ final List<DayConfig> days = [
                   Spacer(),
                   Text(
                     "መዝሙረ ዳዊት",
-                    style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     "Daily Prayer Guide",
@@ -405,38 +475,56 @@ final List<DayConfig> days = [
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 4.0),
                   child: ListTile(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    tileColor: isSelected ? Theme.of(context).colorScheme.primaryContainer : Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    tileColor: isSelected
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : Colors.transparent,
                     title: Text(
                       day.name,
                       style: TextStyle(
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? Theme.of(context).colorScheme.onPrimaryContainer : null,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.onPrimaryContainer
+                            : null,
                       ),
                     ),
                     subtitle: Text(
                       'Chapters ${day.startChapter} - ${day.endChapter}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isSelected ? Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.7) : Colors.grey,
+                        color: isSelected
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer.withOpacity(0.7)
+                            : Colors.grey,
                       ),
                     ),
                     selected: isSelected,
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.2) : Theme.of(context).colorScheme.surfaceVariant,
+                        color: isSelected
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.2)
+                            : Theme.of(context).colorScheme.surfaceVariant,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         Icons.calendar_today_rounded,
                         size: 20,
-                        color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    onTap: () { 
-                      _selectDay(day); 
-                      Navigator.pop(context); 
+                    onTap: () {
+                      _selectDay(day);
+                      Navigator.pop(context);
                     },
                   ),
                 );
