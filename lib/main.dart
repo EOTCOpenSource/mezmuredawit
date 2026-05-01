@@ -116,12 +116,18 @@ class _HomePageState extends State<HomePage> {
   bool _isLoading = true;
   DayConfig? _selectedDay;
   int _currentChapterNumber = 1;
-  final ScrollController _scrollController = ScrollController();
+  PageController? _pageController;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _pageController?.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -145,7 +151,12 @@ class _HomePageState extends State<HomePage> {
 
   void _autoSelectDay() {
     int weekday = DateTime.now().weekday;
-    _selectDay(weekday >= 1 && weekday <= 6 ? days[weekday - 1] : days[0]);
+    DayConfig day = weekday >= 1 && weekday <= 6 ? days[weekday - 1] : days[0];
+    setState(() {
+      _selectedDay = day;
+      _currentChapterNumber = day.startChapter;
+    });
+    _pageController = PageController(initialPage: 0);
   }
 
   void _selectDay(DayConfig day) {
@@ -153,112 +164,92 @@ class _HomePageState extends State<HomePage> {
       _selectedDay = day;
       _currentChapterNumber = day.startChapter;
     });
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
+    _pageController?.jumpToPage(0);
   }
 
   void _changeChapter(int newChapter) {
+    if (_selectedDay == null) return;
     if (newChapter >= _selectedDay!.startChapter &&
         newChapter <= _selectedDay!.endChapter) {
-      setState(() => _currentChapterNumber = newChapter);
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          0,
+      int newPage = newChapter - _selectedDay!.startChapter;
+      if (_pageController != null && _pageController!.hasClients) {
+        _pageController!.animateToPage(
+          newPage,
           duration: const Duration(milliseconds: 300),
-          curve: Curves.easeIn,
+          curve: Curves.easeInOut,
         );
+      } else {
+        setState(() => _currentChapterNumber = newChapter);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Chapter? currentChapter;
-    if (_chapters.isNotEmpty) {
-      currentChapter = _chapters.firstWhere(
-        (c) => c.chapter == _currentChapterNumber,
-        orElse: () => _chapters.first,
-      );
-    }
-
     double progress = _selectedDay == null
         ? 0
         : (_currentChapterNumber - _selectedDay!.startChapter + 1) /
               (_selectedDay!.endChapter - _selectedDay!.startChapter + 1);
 
     return Scaffold(
+      appBar: _isLoading ? null : AppBar(
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        title: Text('መዝሙረ ዳዊት $_currentChapterNumber'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.format_size),
+            onPressed: _showSettingsSheet,
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(2),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 2,
+            backgroundColor: Colors.transparent,
+          ),
+        ),
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : GestureDetector(
-              onHorizontalDragEnd: (details) {
-                if (details.primaryVelocity != null) {
-                  const int sensitivity = 300;
-                  if (details.primaryVelocity! < -sensitivity) {
-                    // Swiped Left -> Next Chapter
-                    if (_selectedDay != null &&
-                        _currentChapterNumber < _selectedDay!.endChapter) {
-                      _changeChapter(_currentChapterNumber + 1);
-                    }
-                  } else if (details.primaryVelocity! > sensitivity) {
-                    // Swiped Right -> Previous Chapter
-                    if (_selectedDay != null &&
-                        _currentChapterNumber > _selectedDay!.startChapter) {
-                      _changeChapter(_currentChapterNumber - 1);
-                    }
-                  }
-                }
+          : PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentChapterNumber = _selectedDay!.startChapter + index;
+                });
               },
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverAppBar(
-                    pinned: true,
-                    floating: true,
-                    leading: Builder(
-                      builder: (context) => IconButton(
-                        icon: const Icon(Icons.menu),
-                        onPressed: () => Scaffold.of(context).openDrawer(),
+              itemCount: _selectedDay!.endChapter - _selectedDay!.startChapter + 1,
+              itemBuilder: (context, index) {
+                int chapterNum = _selectedDay!.startChapter + index;
+                Chapter? chapter;
+                if (_chapters.isNotEmpty) {
+                  chapter = _chapters.firstWhere(
+                    (c) => c.chapter == chapterNum,
+                    orElse: () => _chapters.first,
+                  );
+                }
+                
+                if (chapter == null) return const SizedBox.shrink();
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  child: Column(
+                    children: [
+                      ...chapter.sections.asMap().entries.map((entry) => 
+                        _buildSection(entry.value, entry.key)
                       ),
-                    ),
-                    title: Text('መዝሙረ ዳዊት $_currentChapterNumber'),
-                    centerTitle: true,
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Icons.format_size),
-                        onPressed: _showSettingsSheet,
-                      ),
+                      const SizedBox(height: 100),
                     ],
-                    bottom: PreferredSize(
-                      preferredSize: const Size.fromHeight(2),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 2,
-                        backgroundColor: Colors.transparent,
-                      ),
-                    ),
                   ),
-                  if (currentChapter != null)
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 10,
-                      ),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) =>
-                              _buildSection(currentChapter!.sections[index], index),
-                          childCount: currentChapter.sections.length,
-                        ),
-                      ),
-                    ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                ],
-              ),
+                );
+              },
             ),
       drawer: _buildDrawer(),
       bottomSheet: _buildBottomNav(),
