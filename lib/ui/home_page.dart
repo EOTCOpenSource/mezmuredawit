@@ -6,7 +6,7 @@ import 'widgets/sidebar.dart';
 import 'widgets/bottom_nav.dart';
 import 'widgets/settings_sheet.dart';
 import 'widgets/chapter_selector.dart';
-import 'settings_page.dart';
+import 'info_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -162,11 +162,11 @@ class _HomePageState extends State<HomePage> {
               centerTitle: true,
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.settings),
+                  icon: const Icon(Icons.info_outline),
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const SettingsPage()),
+                      MaterialPageRoute(builder: (context) => const InfoPage()),
                     );
                   },
                 ),
