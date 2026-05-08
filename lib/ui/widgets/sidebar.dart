@@ -154,21 +154,23 @@ class SidebarDrawer extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                     child: Image.asset(
                       'assets/eotc.jpg',
-                      height: 40,
-                      width: 40,
+                      height: 48,
+                      width: 48,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Icon(
                         Icons.church_rounded,
+                        size: 32,
                         color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,13 +180,14 @@ class SidebarDrawer extends StatelessWidget {
                           "ማኅበረ ነህምያ",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: 15,
                           ),
                         ),
+                        const SizedBox(height: 2),
                         Text(
                           "Join our Telegram",
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
                             color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.w600,
                           ),
@@ -192,10 +195,17 @@ class SidebarDrawer extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(
-                    Icons.telegram,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 24,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.telegram,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 28,
+                    ),
                   ),
                 ],
               ),
