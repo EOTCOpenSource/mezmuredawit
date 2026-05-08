@@ -73,22 +73,6 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, "Debug Tools"),
-          ListTile(
-            tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            leading: const Icon(Icons.bug_report_outlined),
-            title: const Text("Test Notification"),
-            subtitle: const Text("Sends an immediate test notification"),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              NotificationService.sendTestNotification();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Test notification sent!")),
-              );
-            },
-          ),
-          const SizedBox(height: 24),
           _buildSectionHeader(context, "About Us"),
           Card(
             elevation: 0,
@@ -151,8 +135,10 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
                     children: [
                       _buildSocialButton(
                         context,
@@ -160,14 +146,12 @@ class SettingsPage extends StatelessWidget {
                         "Telegram",
                         () => _launchUrl("https://t.me/EOTCOpenSource"),
                       ),
-                      const SizedBox(width: 12),
                       _buildSocialButton(
                         context,
                         Icons.code_rounded,
                         "GitHub",
                         () => _launchUrl("https://github.com/EOTCOpenSource"),
                       ),
-                      const SizedBox(width: 12),
                       _buildSocialButton(
                         context,
                         Icons.language_rounded,
