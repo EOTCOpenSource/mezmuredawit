@@ -42,7 +42,7 @@ class BottomNav extends StatelessWidget {
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
             ),
             IconButton(
-              icon: const Icon(Icons.settings_outlined, size: 22),
+              icon: const Icon(Icons.format_size, size: 22),
               onPressed: onShowSettings,
             ),
             Flexible(
