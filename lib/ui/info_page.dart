@@ -108,7 +108,7 @@ class InfoPage extends StatelessWidget {
                   _buildModernCard(
                     context,
                     title: "Our Mission",
-                    icon: Icons.auto_awesome_rounded,
+                    icon: Icons.explore_rounded,
                     content:
                         "Establishing a thriving open-source community dedicated to building high-quality digital products for the Ethiopian Orthodox Tewahedo Church. We believe in preserving our heritage through modern technology.",
                   ),
