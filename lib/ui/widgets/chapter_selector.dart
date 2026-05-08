@@ -7,11 +7,11 @@ class ChapterSelector extends StatelessWidget {
   final ValueChanged<int> onChapterChanged;
 
   const ChapterSelector({
-    Key? key,
+    super.key,
     required this.selectedDay,
     required this.currentChapterNumber,
     required this.onChapterChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class ChapterSelector extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isCurrent
                     ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.surfaceVariant,
+                    : Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               alignment: Alignment.center,

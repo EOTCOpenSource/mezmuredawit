@@ -5,7 +5,7 @@ import '../../providers/app_state.dart';
 class ReadingView extends StatelessWidget {
   final Chapter chapter;
 
-  const ReadingView({Key? key, required this.chapter}) : super(key: key);
+  const ReadingView({super.key, required this.chapter});
 
   @override
   Widget build(BuildContext context) {

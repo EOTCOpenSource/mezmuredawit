@@ -3,7 +3,7 @@ import '../../providers/app_state.dart';
 import '../../services/notification_service.dart';
 
 class SettingsSheet extends StatelessWidget {
-  const SettingsSheet({Key? key}) : super(key: key);
+  const SettingsSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +35,7 @@ class SettingsSheet extends StatelessWidget {
             valueListenable: fontFamilyNotifier,
             builder: (context, currentFont, _) {
               return DropdownButtonFormField<String>(
-                value: currentFont,
+                initialValue: currentFont,
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   border: OutlineInputBorder(

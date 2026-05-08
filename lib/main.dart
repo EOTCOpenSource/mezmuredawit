@@ -11,13 +11,13 @@ void main() async {
 }
 
 class PrayerApp extends StatelessWidget {
-  const PrayerApp({Key? key}) : super(key: key);
+  const PrayerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeNotifier,
-      builder: (_, currentMode, __) {
+      builder: (_, currentMode, _) {
         return MaterialApp(
           title: 'Mezmure Dawit',
           debugShowCheckedModeBanner: false,

@@ -9,13 +9,13 @@ class BottomNav extends StatelessWidget {
   final VoidCallback onShowChapterSelector;
 
   const BottomNav({
-    Key? key,
+    super.key,
     required this.selectedDay,
     required this.currentChapterNumber,
     required this.onChapterChanged,
     required this.onShowSettings,
     required this.onShowChapterSelector,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

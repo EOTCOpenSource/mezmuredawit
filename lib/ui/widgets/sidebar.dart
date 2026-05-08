@@ -8,11 +8,11 @@ class SidebarDrawer extends StatelessWidget {
   final String? dailyQuoteText;
 
   const SidebarDrawer({
-    Key? key,
+    super.key,
     required this.selectedDay,
     required this.onDaySelected,
     this.dailyQuoteText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +119,7 @@ class SidebarDrawer extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
-                            : Theme.of(context).colorScheme.surfaceVariant,
+                            : Theme.of(context).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
