@@ -1,6 +1,8 @@
 # Miscellaneous
 *.class
 *.log
+/key
+/android/key.properties
 *.pyc
 *.swp
 .DS_Store
