@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../providers/app_state.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SidebarDrawer extends StatelessWidget {
   final DayConfig? selectedDay;
@@ -137,6 +138,67 @@ class SidebarDrawer extends StatelessWidget {
                   ),
                 );
               }).toList(),
+            ),
+          ),
+          const Divider(height: 1),
+          InkWell(
+            onTap: () async {
+              final Uri url = Uri.parse('https://t.me/EOTCOpenSource');
+              if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                // ignore: use_build_context_synchronously
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Could not launch Telegram')),
+                );
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      'assets/eotc.jpg',
+                      height: 40,
+                      width: 40,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.church_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          "ማኅበረ ነህምያ",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          "Join our Telegram",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.telegram,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 24,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
