@@ -53,19 +53,25 @@ class SidebarDrawer extends StatelessWidget {
                   ),
                   if (dailyQuoteText != null) ...[
                     const SizedBox(height: 16),
-                    ValueListenableBuilder<String>(
-                      valueListenable: fontFamilyNotifier,
-                      builder: (context, font, _) {
-                        return Text(
-                          dailyQuoteText!,
-                          style: TextStyle(
-                            fontFamily: font,
-                            color: Colors.white.withOpacity(0.95),
-                            fontSize: 15,
-                            height: 1.4,
-                          ),
-                        );
-                      },
+                    SizedBox(
+                      height: 80,
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: ValueListenableBuilder<String>(
+                          valueListenable: fontFamilyNotifier,
+                          builder: (context, font, _) {
+                            return Text(
+                              dailyQuoteText!,
+                              style: TextStyle(
+                                fontFamily: font,
+                                color: Colors.white.withOpacity(0.95),
+                                fontSize: 15,
+                                height: 1.4,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ],
                 ],
